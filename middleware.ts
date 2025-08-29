@@ -1,42 +1,76 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
-// Define protected routes that require authentication
-const protectedRoutes = ['/polls/create', '/profile', '/my-polls']
+export async function middleware(request: NextRequest) {
+  // Check if Supabase is configured
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    // Fallback: allow all routes when Supabase is not configured
+    return NextResponse.next()
+  }
 
-// Define auth routes that should redirect if user is already logged in
-const authRoutes = ['/login', '/register']
+  let supabaseResponse = NextResponse.next({
+    request,
+  })
 
-export function middleware(request: NextRequest) {
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          supabaseResponse = NextResponse.next({
+            request,
+          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  // IMPORTANT: Avoid writing any logic between createServerClient and
+  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
+  // issues with users being randomly logged out.
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // Define protected routes that require authentication
+  const protectedRoutes = ['/polls/create', '/profile', '/my-polls']
+  const authRoutes = ['/login', '/register']
+
   const { pathname } = request.nextUrl
-  
-  // Check if user has auth token
-  const token = request.cookies.get('auth-token')?.value
-  
-  // Redirect to login if accessing protected route without token
-  if (protectedRoutes.some(route => pathname.startsWith(route)) && !token) {
+
+  // Redirect to login if accessing protected route without authentication
+  if (protectedRoutes.some(route => pathname.startsWith(route)) && !user) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)
   }
-  
-  // Redirect to home if accessing auth routes with token
-  if (authRoutes.includes(pathname) && token) {
+
+  // Redirect to home if accessing auth routes while authenticated
+  if (authRoutes.includes(pathname) && user) {
     return NextResponse.redirect(new URL('/', request.url))
   }
-  
-  return NextResponse.next()
+
+  return supabaseResponse
 }
 
 export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * Feel free to modify this pattern to include more paths.
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
