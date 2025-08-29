@@ -4,7 +4,7 @@ A modern polling application built with Next.js 14, TypeScript, and Shadcn UI co
 
 ## 🚀 Features
 
-- **User Authentication**: Secure login and registration system
+- **User Authentication**: Secure login and registration system (with Supabase integration ready)
 - **Poll Creation**: Create custom polls with multiple options
 - **Poll Voting**: Participate in active polls with real-time results
 - **Poll Management**: View, edit, and manage your created polls
@@ -18,7 +18,7 @@ A modern polling application built with Next.js 14, TypeScript, and Shadcn UI co
 - **Styling**: Tailwind CSS
 - **UI Components**: Shadcn UI
 - **State Management**: React Context API
-- **Authentication**: Custom auth provider (ready for backend integration)
+- **Authentication**: Supabase (with localStorage fallback for development)
 
 ## 📁 Project Structure
 
@@ -38,12 +38,14 @@ ai_for_devs/
 │   └── page.tsx                  # Home page
 ├── components/                   # React components
 │   ├── auth/                     # Authentication components
-│   │   └── AuthProvider.tsx      # Auth context provider
+│   │   ├── AuthProvider.tsx      # Auth context provider
+│   │   └── ProtectedRoute.tsx    # Route protection component
 │   ├── layout/                   # Layout components
 │   │   └── Navigation.tsx        # Main navigation
 │   └── ui/                       # Shadcn UI components
 ├── lib/                          # Utility libraries
 │   ├── api.ts                    # API utility functions
+│   ├── supabase.ts               # Supabase client configuration
 │   └── types.ts                  # TypeScript type definitions
 ├── public/                       # Static assets
 └── package.json                  # Dependencies and scripts
@@ -55,6 +57,7 @@ ai_for_devs/
 - **AuthProvider**: Context provider for user authentication state
 - **Login/Register Pages**: Clean, responsive authentication forms
 - **Navigation**: Dynamic navigation with user status
+- **ProtectedRoute**: Client-side route protection
 
 ### Poll Management
 - **Polls Listing**: Grid layout showing all available polls
@@ -69,6 +72,8 @@ ai_for_devs/
 
 ## 🚀 Getting Started
 
+### Quick Start (Development Mode)
+
 1. **Install dependencies**:
    ```bash
    npm install
@@ -82,16 +87,51 @@ ai_for_devs/
 3. **Open your browser**:
    Navigate to [http://localhost:3000](http://localhost:3000)
 
+4. **Test authentication**:
+   - Go to `/register` to create an account
+   - Go to `/login` to sign in
+   - Try accessing `/polls/create` (protected route)
+
+### Supabase Integration (Optional)
+
+For production-ready authentication:
+
+1. **Follow the Supabase setup guide**: See `SUPABASE_SETUP.md`
+2. **Create environment variables**: Copy `env.example` to `.env.local`
+3. **Add your Supabase credentials**:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+   ```
+
 ## 📋 Available Routes
 
 - `/` - Home page with app overview
 - `/login` - User login page
 - `/register` - User registration page
 - `/polls` - Browse all polls
-- `/polls/create` - Create a new poll
+- `/polls/create` - Create a new poll (protected)
 - `/polls/[id]` - View and vote on a specific poll
 
 ## 🔧 Development
+
+### Current Authentication System
+
+The app currently uses a **fallback authentication system** that works without any backend:
+
+- ✅ **Registration**: Creates user accounts in localStorage
+- ✅ **Login**: Authenticates against localStorage data
+- ✅ **Session Persistence**: Stays logged in across page refreshes
+- ✅ **Protected Routes**: Client-side protection with `ProtectedRoute` component
+- ✅ **User Display**: Shows user name and email in navigation
+
+### Adding Supabase (Production)
+
+When you're ready to add real authentication:
+
+1. **Set up Supabase project** (see `SUPABASE_SETUP.md`)
+2. **Add environment variables**
+3. **Restart the app** - It will automatically switch to Supabase
 
 ### Adding New Features
 
