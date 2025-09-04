@@ -42,57 +42,68 @@ export default function PollDetailPage({ params }: { params: { id: string } | Pr
 
   useEffect(() => {
     const fetchPoll = async () => {
-      setLoading(true)
-      const { data, error } = await supabase
-        .from('polls')
-        .select(`
-          id,
-          title,
-          description,
-          is_active,
-          created_at,
-          category,
-          options (id, text, votes)
-        `)
-        .eq('id', id)
-        .single()
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('polls')
+          .select(
+            `
+            id,
+            title,
+            description,
+            is_active,
+            created_at,
+            category,
+            options (id, text, votes)
+          `
+          )
+          .eq('id', id)
+          .single();
 
-      if (error) {
-        console.error('Error fetching poll:', error)
+        if (error) throw error;
+
+        if (data) {
+          // Define a type for the raw option data from Supabase for clarity.
+          type RawOption = { id: string; text: string; votes: number };
+
+          const totalVotes = data.options.reduce(
+            (sum: number, option: RawOption) => sum + option.votes,
+            0
+          );
+
+          const optionsWithPercentage = data.options.map(
+            (option: RawOption): PollOption => ({
+              ...option,
+              percentage: totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0,
+            })
+          );
+
+          setPoll({
+            id: data.id,
+            title: data.title,
+            description: data.description,
+            totalVotes,
+            isActive: data.is_active,
+            createdAt: data.created_at,
+            category: data.category,
+            options: optionsWithPercentage,
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching poll:', error);
         toast({
           title: "Error",
           description: "Failed to load poll. Please try again.",
           variant: "destructive",
-        })
-        setLoading(false)
-        return
+        });
+        setPoll(null);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      if (data) {
-        const totalVotes = data.options.reduce((sum: number, option: any) => sum + option.votes, 0)
-        const optionsWithPercentage = data.options.map((option: any) => ({
-          id: option.id,
-          text: option.text,
-          votes: option.votes,
-          percentage: totalVotes === 0 ? 0 : (option.votes / totalVotes) * 100,
-        }))
-
-        setPoll({
-          id: data.id,
-          title: data.title,
-          description: data.description,
-          totalVotes,
-          isActive: data.is_active,
-          createdAt: data.created_at,
-          category: data.category,
-          options: optionsWithPercentage,
-        })
-      }
-      setLoading(false)
-    }
-
-    fetchPoll()
-  }, [id, supabase])
+    fetchPoll();
+  }, [id, supabase, toast]);
 
   const handleVote = async () => {
     if (!user) {
