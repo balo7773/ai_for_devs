@@ -20,18 +20,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check for existing session in localStorage (fallback)
-    const storedUser = localStorage.getItem('auth-user')
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser)
-        setUser(userData)
-        setSession({ user: userData, access_token: 'mock-token', refresh_token: 'mock-token' } as Session)
-      } catch (error) {
-        console.error('Error parsing stored user:', error)
+    let unsubscribe: () => void
+
+    const setupSupabaseListener = async () => {
+      if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        const { createClient } = await import('@/lib/supabase')
+        const supabase = createClient()
+
+        const { data } = await supabase.auth.getSession()
+        setSession(data.session)
+        setUser(data.session?.user || null)
+        setIsLoading(false)
+
+        unsubscribe = supabase.auth.onAuthStateChange((_event, session) => {
+          setSession(session)
+          setUser(session?.user || null)
+          setIsLoading(false)
+        }).data.subscription.unsubscribe
+      } else {
+        // Fallback for development without Supabase
+        const storedUser = localStorage.getItem('auth-user')
+        if (storedUser) {
+          try {
+            const userData = JSON.parse(storedUser)
+            setUser(userData)
+            setSession({ user: userData, access_token: 'mock-token', refresh_token: 'mock-token' } as Session)
+          } catch (error) {
+            console.error('Error parsing stored user:', error)
+          }
+        }
+        setIsLoading(false)
       }
     }
-    setIsLoading(false)
+
+    setupSupabaseListener()
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe()
+      }
+    }
   }, [])
 
   const signUp = async (email: string, password: string, name: string) => {
@@ -41,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Use Supabase if configured
         const { createClient } = await import('@/lib/supabase')
         const supabase = createClient()
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -50,6 +78,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           }
         })
+        if (data?.user && data?.session) {
+          setUser(data.user)
+          setSession(data.session)
+        }
         return { error }
       } else {
         // Fallback for development without Supabase
@@ -90,10 +122,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Use Supabase if configured
         const { createClient } = await import('@/lib/supabase')
         const supabase = createClient()
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
+        if (data?.user && data?.session) {
+          setUser(data.user)
+          setSession(data.session)
+        }
         return { error }
       } else {
         // Fallback for development without Supabase

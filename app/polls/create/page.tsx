@@ -75,22 +75,38 @@ export default function CreatePollPage() {
     }
 
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // In a real app, you would send this to your Supabase database
-      const pollData = {
-        ...formData,
-        options: validOptions,
-        created_at: new Date().toISOString()
+      const { createClient } = await import("@/lib/supabase")
+      const supabase = createClient()
+      // Insert poll
+      const { data: poll, error: pollError } = await supabase.from("polls").insert({
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        is_active: true,
+        created_at: new Date().toISOString(),
+      }).select().single()
+
+      if (pollError || !poll) {
+        setError("Failed to create poll. Please try again.")
+        setIsLoading(false)
+        return
       }
-      
-      console.log("Creating poll:", pollData)
-      
+
+      // Insert options
+      const optionsToInsert = validOptions.map(option => ({
+        poll_id: poll.id,
+        text: option,
+        votes: 0
+      }))
+      const { error: optionsError } = await supabase.from("options").insert(optionsToInsert)
+      if (optionsError) {
+        setError("Failed to create poll options. Please try again.")
+        setIsLoading(false)
+        return
+      }
+
       // Show success message
       alert("Poll created successfully!")
-      
-      // Redirect to polls page
       router.push("/polls")
     } catch (error) {
       setError("Failed to create poll. Please try again.")
