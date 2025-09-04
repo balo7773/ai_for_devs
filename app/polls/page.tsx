@@ -1,40 +1,30 @@
+"use client"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-
-// Mock data for demonstration
-const mockPolls = [
-  {
-    id: "1",
-    title: "What's your favorite programming language?",
-    description: "A survey to understand developer preferences",
-    totalVotes: 156,
-    isActive: true,
-    createdAt: "2024-01-15",
-    category: "Technology"
-  },
-  {
-    id: "2",
-    title: "Best pizza topping",
-    description: "Settle the debate once and for all",
-    totalVotes: 89,
-    isActive: true,
-    createdAt: "2024-01-14",
-    category: "Food"
-  },
-  {
-    id: "3",
-    title: "Preferred work environment",
-    description: "Remote, hybrid, or office?",
-    totalVotes: 234,
-    isActive: false,
-    createdAt: "2024-01-10",
-    category: "Work"
-  }
-]
+import { createClient } from "@/lib/supabase"
 
 export default function PollsPage() {
+  const [polls, setPolls] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from("polls")
+      .select("*")
+      .then(({ data, error }) => {
+        if (error) {
+          setPolls([])
+        } else {
+          setPolls(data || [])
+        }
+        setLoading(false)
+      })
+  }, [])
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -47,37 +37,41 @@ export default function PollsPage() {
         </Link>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {mockPolls.map((poll) => (
-          <Card key={poll.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-lg">{poll.title}</CardTitle>
-                <Badge variant={poll.isActive ? "default" : "secondary"}>
-                  {poll.isActive ? "Active" : "Closed"}
-                </Badge>
-              </div>
-              <CardDescription>{poll.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Category: {poll.category}</span>
-                  <span>{poll.totalVotes} votes</span>
+      {loading ? (
+        <div className="text-center py-8">Loading polls...</div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {polls.map((poll) => (
+            <Card key={poll.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-lg">{poll.title}</CardTitle>
+                  <Badge variant={poll.is_active ? "default" : "secondary"}>
+                    {poll.is_active ? "Active" : "Closed"}
+                  </Badge>
                 </div>
-                <div className="text-xs text-gray-500">
-                  Created: {poll.createdAt}
+                <CardDescription>{poll.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>Category: {poll.category}</span>
+                    {/* You can fetch totalVotes from options if needed */}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Created: {poll.created_at}
+                  </div>
+                  <Link href={`/polls/${poll.id}`}>
+                    <Button variant="outline" className="w-full">
+                      {poll.is_active ? "Vote Now" : "View Results"}
+                    </Button>
+                  </Link>
                 </div>
-                <Link href={`/polls/${poll.id}`}>
-                  <Button variant="outline" className="w-full">
-                    {poll.isActive ? "Vote Now" : "View Results"}
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
