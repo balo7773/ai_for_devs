@@ -1,180 +1,101 @@
-# AI_FOR_DEVS Polls
+# Alx Polly - A Full-Stack Polling Application
 
-A modern polling application built with Next.js 14, TypeScript, and Shadcn UI components. Create, share, and participate in polls with the developer community.
+Alx Polly is a modern, full-stack polling application built with Next.js, Supabase, and shadcn/ui. It provides a complete platform for users to create, vote on, and manage polls, with a dedicated admin panel for site-wide management.
 
-## 🚀 Features
+## Features
 
-- **User Authentication**: Secure login and registration system (with Supabase integration ready)
-- **Poll Creation**: Create custom polls with multiple options
-- **Poll Voting**: Participate in active polls with real-time results
-- **Poll Management**: View, edit, and manage your created polls
-- **Responsive Design**: Modern UI that works on all devices
-- **Real-time Updates**: Live results and statistics
+### Core User Features
 
-## 🛠️ Tech Stack
+- **Authentication**: Secure user sign-up, sign-in, and sign-out functionality powered by Supabase Auth.
+- **Poll Creation**: Authenticated users can create new polls with a question and multiple options.
+- **Poll Voting**: Users can cast their vote on any active poll. Voting is restricted to one vote per user per poll.
+- **View Polls**: Users can browse and view a list of all polls.
+- **Detailed Poll View**: A dedicated page for each poll shows its description, options, and real-time results.
+- **Dynamic Results**: Poll results are displayed with vote counts and dynamic percentage bars.
 
-- **Framework**: Next.js 14 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: Shadcn UI
-- **State Management**: React Context API
-- **Authentication**: Supabase (with localStorage fallback for development)
+### Admin & Management
 
-## 📁 Project Structure
+- **Admin Dashboard**: A secure panel accessible only to designated admin users.
+- **System-Wide Poll Management**: Admins can view and manage every poll created on the platform.
+- **Delete Any Poll**: Admins have the authority to delete any poll, overriding ownership rules.
 
-```
-ai_for_devs/
-├── app/                          # Next.js App Router
-│   ├── (auth)/                   # Authentication route group
-│   │   ├── login/                # Login page
-│   │   ├── register/             # Registration page
-│   │   └── layout.tsx            # Auth layout
-│   ├── polls/                    # Polls feature
-│   │   ├── page.tsx              # Polls listing page
-│   │   ├── create/               # Create poll page
-│   │   └── [id]/                 # Dynamic poll detail page
-│   ├── globals.css               # Global styles
-│   ├── layout.tsx                # Root layout
-│   └── page.tsx                  # Home page
-├── components/                   # React components
-│   ├── auth/                     # Authentication components
-│   │   ├── AuthProvider.tsx      # Auth context provider
-│   │   └── ProtectedRoute.tsx    # Route protection component
-│   ├── layout/                   # Layout components
-│   │   └── Navigation.tsx        # Main navigation
-│   └── ui/                       # Shadcn UI components
-├── lib/                          # Utility libraries
-│   ├── api.ts                    # API utility functions
-│   ├── supabase.ts               # Supabase client configuration
-│   └── types.ts                  # TypeScript type definitions
-├── public/                       # Static assets
-└── package.json                  # Dependencies and scripts
+## Technology Stack
+
+- **Framework**: [Next.js](https://nextjs.org/) (App Router)
+- **Backend & Database**: [Supabase](https://supabase.io/)
+- **Authentication**: [Supabase Auth](https://supabase.com/docs/guides/auth)
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Data Fetching & Mutations**: React Server Components & Server Actions
+
+## Getting Started
+
+Follow these steps to get a local development environment running.
+
+### Prerequisites
+
+- Node.js (v18.18 or later)
+- npm, yarn, or pnpm
+- A free Supabase account
+
+### 1. Clone the Repository
+
+```bash
+git clone <your-repository-url>
+cd ai_for_devs
 ```
 
-## 🎯 Key Components
+### 2. Install Dependencies
 
-### Authentication System
-- **AuthProvider**: Context provider for user authentication state
-- **Login/Register Pages**: Clean, responsive authentication forms
-- **Navigation**: Dynamic navigation with user status
-- **ProtectedRoute**: Client-side route protection
+Using your preferred package manager:
 
-### Poll Management
-- **Polls Listing**: Grid layout showing all available polls
-- **Poll Creation**: Form with dynamic option management
-- **Poll Details**: Individual poll view with voting interface
-- **Real-time Results**: Progress bars and vote counts
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
 
-### UI Components
-- **Shadcn UI**: Modern, accessible component library
-- **Responsive Design**: Mobile-first approach
-- **Interactive Elements**: Hover effects and transitions
+### 3. Set Up Environment Variables
 
-## 🚀 Getting Started
+You'll need a Supabase project to connect to. Once you have your project URL and anon key, create a `.env.local` file in the root of the project and add the following variables:
 
-### Quick Start (Development Mode)
+```env
+NEXT_PUBLIC_SUPABASE_URL="your-supabase-project-url"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
+ADMIN_USER_IDS="user-id-1,user-id-2,..."
+```
 
-1. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+Replace the placeholder values with your actual Supabase credentials.
 
-2. **Run the development server**:
-   ```bash
-   npm run dev
-   ```
+### 4. Set Up Supabase Database
 
-3. **Open your browser**:
-   Navigate to [http://localhost:3000](http://localhost:3000)
+You will need to set up the following tables in your Supabase project:
 
-4. **Test authentication**:
-   - Go to `/register` to create an account
-   - Go to `/login` to sign in
-   - Try accessing `/polls/create` (protected route)
+*   `polls`: To store poll questions, descriptions, etc.
+*   `options`: To store the options for each poll.
+*   `votes`: To track user votes and prevent duplicates.
 
-### Supabase Integration (Optional)
+*(You can ask me to generate the `schema.sql` file for this!)*
 
-For production-ready authentication:
+### 5. Run the Development Server
 
-1. **Follow the Supabase setup guide**: See `SUPABASE_SETUP.md`
-2. **Create environment variables**: Copy `env.example` to `.env.local`
-3. **Add your Supabase credentials**:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_project_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-   ```
+```bash
+npm run dev
+```
 
-## 📋 Available Routes
+Open http://localhost:3000 with your browser to see the result.
 
-- `/` - Home page with app overview
-- `/login` - User login page
-- `/register` - User registration page
-- `/polls` - Browse all polls
-- `/polls/create` - Create a new poll (protected)
-- `/polls/[id]` - View and vote on a specific poll
+## Admin Configuration
 
-## 🔧 Development
+To designate a user as an admin, you need their Supabase User ID. You can find this in the "Authentication" section of your Supabase project dashboard.
 
-### Current Authentication System
+Add one or more comma-separated User IDs to the `ADMIN_USER_IDS` variable in your `.env.local` file:
 
-The app currently uses a **fallback authentication system** that works without any backend:
+```env
+ADMIN_USER_IDS="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx,yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"
+```
 
-- ✅ **Registration**: Creates user accounts in localStorage
-- ✅ **Login**: Authenticates against localStorage data
-- ✅ **Session Persistence**: Stays logged in across page refreshes
-- ✅ **Protected Routes**: Client-side protection with `ProtectedRoute` component
-- ✅ **User Display**: Shows user name and email in navigation
-
-### Adding Supabase (Production)
-
-When you're ready to add real authentication:
-
-1. **Set up Supabase project** (see `SUPABASE_SETUP.md`)
-2. **Add environment variables**
-3. **Restart the app** - It will automatically switch to Supabase
-
-### Adding New Features
-
-1. **Create new pages** in the `app/` directory
-2. **Add components** in the `components/` directory
-3. **Define types** in `lib/types.ts`
-4. **Add API functions** in `lib/api.ts`
-
-### Styling
-
-- Use Tailwind CSS classes for styling
-- Leverage Shadcn UI components for consistency
-- Follow the existing design patterns
-
-### State Management
-
-- Use the `AuthProvider` for user authentication
-- Create new contexts for feature-specific state
-- Keep components focused and reusable
-
-## 🔮 Future Enhancements
-
-- [ ] Backend API integration
-- [ ] Real-time polling with WebSockets
-- [ ] User profiles and avatars
-- [ ] Poll categories and filtering
-- [ ] Advanced analytics and charts
-- [ ] Social sharing features
-- [ ] Email notifications
-- [ ] Mobile app (React Native)
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
----
-
-Built with ❤️ for the developer community
+Users with these IDs will have access to the admin panel at `/admin` and will be able to perform administrative actions.

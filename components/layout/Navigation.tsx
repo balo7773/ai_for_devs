@@ -6,13 +6,27 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import Link from "next/link"
 import { useAuth } from "@/components/auth/AuthProvider"
 
+/**
+ * Renders the main navigation bar for the application.
+ * It displays navigation links and user authentication status.
+ * If a user is logged in, it shows a user menu with options to view profile,
+ * manage polls, and sign out. Otherwise, it shows sign-in and sign-up buttons.
+ */
 export function Navigation() {
   const { user, signOut } = useAuth()
 
+  /**
+   * Handles the user sign-out process.
+   */
   const handleSignOut = async () => {
     await signOut()
   }
 
+  /**
+   * Generates user initials from their name or email for the avatar fallback.
+   * @param {any} user - The user object from Supabase Auth.
+   * @returns {string} The user's initials.
+   */
   const getUserInitials = (user: any) => {
     if (user?.user_metadata?.name) {
       return user.user_metadata.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
@@ -20,6 +34,11 @@ export function Navigation() {
     return user?.email?.charAt(0).toUpperCase() || 'U'
   }
 
+  /**
+   * Gets the user's display name, falling back to their email.
+   * @param {any} user - The user object from Supabase Auth.
+   * @returns {string} The user's display name.
+   */
   const getUserName = (user: any) => {
     return user?.user_metadata?.name || user?.email || 'User'
   }
@@ -44,6 +63,7 @@ export function Navigation() {
 
           <div className="flex items-center space-x-4">
             {user ? (
+              // User is authenticated, show the user dropdown menu.
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -76,6 +96,7 @@ export function Navigation() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
+              // User is not authenticated, show sign-in and sign-up buttons.
               <div className="flex space-x-2">
                 <Link href="/login">
                   <Button variant="ghost">Sign in</Button>

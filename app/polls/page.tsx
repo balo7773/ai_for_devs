@@ -6,11 +6,18 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase"
 
+/**
+ * Renders the page that displays a list of all available polls.
+ */
 export default function PollsPage() {
   const [polls, setPolls] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    /**
+     * Fetches all polls from the Supabase 'polls' table
+     * when the component mounts.
+     */
     const supabase = createClient()
     supabase
       .from("polls")

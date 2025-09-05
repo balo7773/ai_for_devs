@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/components/auth/AuthProvider"
 
+/**
+ * Renders the login page for user authentication.
+ */
 export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: "",
@@ -18,6 +21,10 @@ export default function LoginPage() {
   const router = useRouter()
   const { signIn } = useAuth()
 
+  /**
+   * Updates the form data state when an input field changes.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
+   */
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
@@ -26,6 +33,10 @@ export default function LoginPage() {
     }))
   }
 
+  /**
+   * Handles the form submission for user login.
+   * @param {React.FormEvent} e - The form submission event.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -39,6 +50,7 @@ export default function LoginPage() {
     }
 
     try {
+      // Attempt to sign in using the AuthProvider.
       const { error } = await signIn(formData.email, formData.password)
       
       if (error) {

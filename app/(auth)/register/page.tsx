@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/components/auth/AuthProvider"
 
+/**
+ * Renders the registration page for new users.
+ */
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: "",
@@ -21,6 +24,10 @@ export default function RegisterPage() {
   const router = useRouter()
   const { signUp } = useAuth()
 
+  /**
+   * Updates the form data state when an input field changes.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
+   */
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
@@ -29,25 +36,31 @@ export default function RegisterPage() {
     }))
   }
 
+  /**
+   * Handles the form submission for user registration.
+   * @param {React.FormEvent} e - The form submission event.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setMessage("")
     setIsLoading(true)
 
-    // Basic validation
+    // --- Form Validation ---
     if (!formData.name || !formData.email || !formData.password) {
       setError("All fields are required")
       setIsLoading(false)
       return
     }
 
+    // Check if passwords match.
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match")
       setIsLoading(false)
       return
     }
 
+    // Enforce minimum password length.
     if (formData.password.length < 6) {
       setError("Password must be at least 6 characters")
       setIsLoading(false)
@@ -55,6 +68,7 @@ export default function RegisterPage() {
     }
 
     try {
+      // Attempt to sign up the user using the AuthProvider.
       const { error } = await signUp(formData.email, formData.password, formData.name)
       
       if (error) {

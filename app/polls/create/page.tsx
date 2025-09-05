@@ -9,8 +9,13 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
+import { useAuth } from "@/components/auth/AuthProvider"
 import Link from "next/link"
 
+/**
+ * Renders the page for creating a new poll.
+ * This page is protected and requires user authentication.
+ */
 export default function CreatePollPage() {
   const [formData, setFormData] = useState({
     title: "",
@@ -22,7 +27,12 @@ export default function CreatePollPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+  const { user } = useAuth()
 
+  /**
+   * Handles changes to the main form inputs (title, description, end date).
+   * @param {React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>} e - The input change event.
+   */
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
@@ -31,6 +41,10 @@ export default function CreatePollPage() {
     }))
   }
 
+  /**
+   * Handles changes to the category select input.
+   * @param {string} value - The selected category value.
+   */
   const handleCategoryChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -38,16 +52,29 @@ export default function CreatePollPage() {
     }))
   }
 
+  /**
+   * Updates the value of a specific poll option.
+   * @param {number} index - The index of the option to update.
+   * @param {string} value - The new text for the option.
+   */
   const handleOptionChange = (index: number, value: string) => {
     const newOptions = [...options]
     newOptions[index] = value
     setOptions(newOptions)
   }
 
+  /**
+   * Adds a new, empty option field to the form.
+   */
   const addOption = () => {
     setOptions([...options, ""])
   }
 
+  /**
+   * Removes a poll option field from the form.
+   * Ensures that at least two options always remain.
+   * @param {number} index - The index of the option to remove.
+   */
   const removeOption = (index: number) => {
     if (options.length > 2) {
       const newOptions = options.filter((_, i) => i !== index)
@@ -55,10 +82,22 @@ export default function CreatePollPage() {
     }
   }
 
+  /**
+   * Handles the form submission to create a new poll.
+   * It validates the form, inserts the poll into the database,
+   * and then inserts the associated options.
+   * @param {React.FormEvent} e - The form submission event.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
+
+    if (!user) {
+      setError("You must be logged in to create a poll.")
+      setIsLoading(false)
+      return
+    }
 
     // Validation
     if (!formData.title || !formData.category) {
@@ -77,12 +116,14 @@ export default function CreatePollPage() {
     try {
       const { createClient } = await import("@/lib/supabase")
       const supabase = createClient()
-      // Insert poll
+
+      // Step 1: Insert the main poll data into the 'polls' table.
       const { data: poll, error: pollError } = await supabase.from("polls").insert({
         title: formData.title,
         description: formData.description,
         category: formData.category,
         is_active: true,
+        created_by: user.id,
         created_at: new Date().toISOString(),
       }).select().single()
 
@@ -92,7 +133,7 @@ export default function CreatePollPage() {
         return
       }
 
-      // Insert options
+      // Step 2: Insert the poll options into the 'options' table, linking them to the new poll.
       const optionsToInsert = validOptions.map(option => ({
         poll_id: poll.id,
         text: option,

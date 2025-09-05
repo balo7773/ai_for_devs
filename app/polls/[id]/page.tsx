@@ -29,6 +29,10 @@ interface Poll {
   options: PollOption[]
 }
 
+/**
+ * Renders the detailed view for a single poll.
+ * It fetches poll data, handles user voting, and displays results.
+ */
 export default function PollDetailPage({ params }: { params: { id: string } | Promise<{ id: string }> }) {
   const resolvedParams = typeof params.then === "function" ? React.use(params) : params;
   const id = resolvedParams.id;
@@ -41,6 +45,10 @@ export default function PollDetailPage({ params }: { params: { id: string } | Pr
   const { toast } = useToast()
 
   useEffect(() => {
+    /**
+     * Fetches the poll data from Supabase, including its options.
+     * It then calculates the total votes and the percentage for each option.
+     */
     const fetchPoll = async () => {
       setLoading(true);
       try {
@@ -66,11 +74,13 @@ export default function PollDetailPage({ params }: { params: { id: string } | Pr
           // Define a type for the raw option data from Supabase for clarity.
           type RawOption = { id: string; text: string; votes: number };
 
+          // Calculate the total number of votes across all options.
           const totalVotes = data.options.reduce(
             (sum: number, option: RawOption) => sum + option.votes,
             0
           );
 
+          // Map over the options to add the calculated vote percentage.
           const optionsWithPercentage = data.options.map(
             (option: RawOption): PollOption => ({
               ...option,
@@ -105,6 +115,13 @@ export default function PollDetailPage({ params }: { params: { id: string } | Pr
     fetchPoll();
   }, [id, supabase, toast]);
 
+  /**
+   * Handles the submission of a user's vote.
+   * It checks for authentication and option selection before proceeding.
+   * The function records the vote in the 'votes' table to prevent duplicates
+   * and then increments the vote count on the 'options' table.
+   * Note: The vote count increment is not atomic and could be improved with a database function (RPC).
+   */
   const handleVote = async () => {
     if (!user) {
       toast({
@@ -125,14 +142,19 @@ export default function PollDetailPage({ params }: { params: { id: string } | Pr
     }
 
     setSubmitting(true)
-    // Insert vote into votes table
+
+    // Step 1: Insert a record into the 'votes' table to prevent the user from voting again.
+    // A unique constraint on (poll_id, user_id) in the database schema is expected.
     const { error: voteError } = await supabase.from('votes').insert({
       poll_id: poll?.id,
       option_id: selectedOption,
       user_id: user.id,
     })
 
-    // Increment vote count in options table
+    // Step 2: Increment the vote count for the selected option.
+    // WARNING: This is a read-modify-write operation and is not atomic.
+    // In a high-concurrency scenario, this could lead to inaccurate vote counts.
+    // A better approach is to use a Supabase RPC (database function) to increment the value atomically.
     const { error: optionError } = await supabase
       .from('options')
       .update({ votes: poll?.options.find(o => o.id === selectedOption)?.votes + 1 })
