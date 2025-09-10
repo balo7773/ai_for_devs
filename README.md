@@ -96,6 +96,8 @@ Add one or more comma-separated User IDs to the `ADMIN_USER_IDS` variable in you
 
 ```env
 ADMIN_USER_IDS="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx,yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"
+
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/balo7773/ai_for_devs?utm_source=oss&utm_medium=github&utm_campaign=balo7773%2Fai_for_devs&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 ```
 
 Users with these IDs will have access to the admin panel at `/admin` and will be able to perform administrative actions.
