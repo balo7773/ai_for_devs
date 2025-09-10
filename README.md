@@ -1,6 +1,6 @@
-# Alx Polly - A Full-Stack Polling Application
+# Polling App - A Full-Stack Polling Application
 
-Alx Polly is a modern, full-stack polling application built with Next.js, Supabase, and shadcn/ui. It provides a complete platform for users to create, vote on, and manage polls, with a dedicated admin panel for site-wide management.
+The Polling App is a modern, full-stack polling application built with Next.js, Supabase, and shadcn/ui. It provides a complete platform for users to create, vote on, and manage polls, with a dedicated admin panel for site-wide management.
 
 ## Features
 
