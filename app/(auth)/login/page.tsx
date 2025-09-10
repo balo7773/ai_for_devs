@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/components/auth/AuthProvider"
+import { useToast } from "@/components/ui/use-toast"
+import Link from "next/link"
 
 /**
  * Renders the login page for user authentication.
@@ -17,9 +19,9 @@ export default function LoginPage() {
     password: ""
   })
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
   const router = useRouter()
   const { signIn } = useAuth()
+  const { toast } = useToast()
 
   /**
    * Updates the form data state when an input field changes.
@@ -39,28 +41,41 @@ export default function LoginPage() {
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
-    setIsLoading(true)
 
     // Basic validation
     if (!formData.email || !formData.password) {
-      setError("Email and password are required")
-      setIsLoading(false)
+      toast({
+        title: "Validation Error",
+        description: "Email and password are required.",
+        variant: "destructive",
+      })
       return
     }
 
+    setIsLoading(true)
     try {
       // Attempt to sign in using the AuthProvider.
       const { error } = await signIn(formData.email, formData.password)
       
       if (error) {
-        setError(error.message)
+        toast({
+          title: "Login Failed",
+          description: error.message || "Invalid credentials. Please try again.",
+          variant: "destructive",
+        })
       } else {
-        // Redirect to polls page on successful login
+        toast({
+          title: "Login Successful",
+          description: "Welcome back! Redirecting...",
+        })
         router.push("/polls")
       }
-    } catch (error) {
-      setError("Login failed. Please try again.")
+    } catch (err) {
+      toast({
+        title: "An Unexpected Error Occurred",
+        description: "Login failed. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
@@ -101,13 +116,7 @@ export default function LoginPage() {
                 required
               />
             </div>
-            
-            {error && (
-              <div className="text-red-600 text-sm text-center bg-red-50 p-2 rounded">
-                {error}
-              </div>
-            )}
-            
+
             <Button 
               type="submit" 
               className="w-full"
@@ -118,9 +127,9 @@ export default function LoginPage() {
           </form>
           
           <div className="text-center text-sm">
-            <a href="/register" className="text-blue-600 hover:underline">
+            <Link href="/auth/register" className="text-blue-600 hover:underline">
               Don't have an account? Sign up
-            </a>
+            </Link>
           </div>
         </CardContent>
       </Card>
